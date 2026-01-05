@@ -1,6 +1,9 @@
 import { redirect } from 'next/navigation'
 import { createServerClient } from '@/lib/supabase/server'
 import LandingPage from '@/components/landing/LandingPage'
+import type { Database } from '@/lib/supabase/database.types'
+
+type Profile = Database['public']['Tables']['profiles']['Row']
 
 export default async function Home() {
   const supabase = await createServerClient()
@@ -12,7 +15,7 @@ export default async function Home() {
       .from('profiles')
       .select('role')
       .eq('user_id', session.user.id)
-      .single()
+      .single() as { data: Profile | null }
 
     if (profile?.role === 'super_admin') {
       redirect('/super-admin')
