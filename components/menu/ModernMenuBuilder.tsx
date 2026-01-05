@@ -148,16 +148,27 @@ export default function ModernMenuBuilder({ businessId, initialCategories }: Mod
     }
   }
 
-  const handleUpdateCategoryImage = async (categoryId: string, imageFile: File, oldImageUrl: string | null) => {
+  const handleUpdateCategoryImage = async (categoryId: string, imageFile: File | null, oldImageUrl: string | null) => {
     setLoading(true)
     try {
-      if (oldImageUrl) {
-        try { await deleteImage(oldImageUrl) } catch {}
+      if (imageFile) {
+        // Upload new image
+        if (oldImageUrl) {
+          try { await deleteImage(oldImageUrl) } catch {}
+        }
+        const imageUrl = await uploadCategoryImage(categoryId, imageFile)
+        await (supabase.from('categories') as any)
+          .update({ image_url: imageUrl })
+          .eq('id', categoryId)
+      } else {
+        // Delete image
+        if (oldImageUrl) {
+          try { await deleteImage(oldImageUrl) } catch {}
+        }
+        await (supabase.from('categories') as any)
+          .update({ image_url: null })
+          .eq('id', categoryId)
       }
-      const imageUrl = await uploadCategoryImage(categoryId, imageFile)
-      await (supabase.from('categories') as any)
-        .update({ image_url: imageUrl })
-        .eq('id', categoryId)
       await refreshCategories()
     } catch (err: any) {
       setError(err.message)
@@ -253,6 +264,55 @@ export default function ModernMenuBuilder({ businessId, initialCategories }: Mod
                 {/* Expanded Content */}
                 {isExpanded && (
                   <div className="border-t border-zinc-100">
+                    {/* Category Cover Image Section */}
+                    <div className="px-5 lg:px-6 py-4 bg-zinc-50 border-b border-zinc-100">
+                      <div className="flex items-center justify-between gap-4">
+                        <div className="flex items-center gap-3">
+                          {category.image_url ? (
+                            <img 
+                              src={category.image_url} 
+                              alt={category.name}
+                              className="w-16 h-16 lg:w-20 lg:h-20 rounded-xl object-cover border-2 border-zinc-200"
+                            />
+                          ) : (
+                            <div className="w-16 h-16 lg:w-20 lg:h-20 rounded-xl bg-zinc-200 border-2 border-dashed border-zinc-300 flex items-center justify-center">
+                              <svg className="w-6 h-6 text-zinc-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z" />
+                              </svg>
+                            </div>
+                          )}
+                          <div>
+                            <p className="text-sm lg:text-base font-medium text-zinc-700">صورة غلاف الفئة</p>
+                            <p className="text-xs lg:text-sm text-zinc-500">ستظهر في أعلى الفئة في القائمة</p>
+                          </div>
+                        </div>
+                        <label className="px-4 py-2 bg-white border border-zinc-300 text-zinc-700 rounded-xl text-sm lg:text-base font-medium hover:bg-zinc-50 hover:border-zinc-400 cursor-pointer flex items-center gap-2 transition-colors">
+                          <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z" />
+                          </svg>
+                          {category.image_url ? 'تغيير الصورة' : 'إضافة صورة'}
+                          <input
+                            type="file"
+                            accept="image/*"
+                            className="hidden"
+                            onChange={(e) => {
+                              const file = e.target.files?.[0]
+                              if (file) handleUpdateCategoryImage(category.id, file, category.image_url)
+                            }}
+                          />
+                        </label>
+                      </div>
+                      {category.image_url && (
+                        <button
+                          onClick={() => handleUpdateCategoryImage(category.id, null, category.image_url)}
+                          disabled={loading}
+                          className="mt-3 text-sm text-red-600 hover:text-red-700 font-medium disabled:opacity-50"
+                        >
+                          حذف الصورة
+                        </button>
+                      )}
+                    </div>
+                    
                     {/* Category Actions */}
                     <div className="px-5 lg:px-6 py-4 bg-zinc-50 flex gap-3 flex-wrap">
                       <button
@@ -262,27 +322,12 @@ export default function ModernMenuBuilder({ businessId, initialCategories }: Mod
                       >
                         + إضافة عنصر
                       </button>
-                      <label className="px-4 py-2 bg-white border border-zinc-200 text-zinc-700 rounded-xl text-sm lg:text-base font-medium hover:bg-zinc-50 cursor-pointer flex items-center gap-2">
-                        <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z" />
-                        </svg>
-                        صورة
-                        <input
-                          type="file"
-                          accept="image/*"
-                          className="hidden"
-                          onChange={(e) => {
-                            const file = e.target.files?.[0]
-                            if (file) handleUpdateCategoryImage(category.id, file, category.image_url)
-                          }}
-                        />
-                      </label>
                       <button
                         onClick={() => handleDeleteCategory(category.id, category.image_url)}
                         disabled={loading}
-                        className="px-4 py-2 bg-red-50 text-red-600 rounded-xl text-sm lg:text-base font-medium hover:bg-red-100 disabled:opacity-50 mr-auto"
+                        className="px-4 py-2 bg-red-50 text-red-600 rounded-xl text-sm lg:text-base font-medium hover:bg-red-100 disabled:opacity-50 ml-auto"
                       >
-                        حذف
+                        حذف الفئة
                       </button>
                     </div>
 
