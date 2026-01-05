@@ -2,9 +2,12 @@
 
 import { useState } from 'react'
 import { createClient } from '@/lib/supabase/client'
-import type { Database } from '@/lib/supabase/database.types'
 
-type Business = Database['public']['Tables']['businesses']['Row']
+interface Business {
+  id: string
+  name: string
+  slug: string
+}
 
 interface BusinessSettingsProps {
   business: Business

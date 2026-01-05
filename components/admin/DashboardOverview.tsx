@@ -3,6 +3,11 @@
 import Link from 'next/link'
 import { useEffect, useState } from 'react'
 import { createClient } from '@/lib/supabase/client'
+import type { Database } from '@/lib/supabase/database.types'
+
+type Category = Database['public']['Tables']['categories']['Row'] & {
+  items: Database['public']['Tables']['items']['Row'][]
+}
 
 interface Business {
   id: string
@@ -29,14 +34,14 @@ export default function DashboardOverview({ business }: { business: Business }) 
       const { data: categories } = await supabase
         .from('categories')
         .select('id, items(*)')
-        .eq('business_id', business.id)
+        .eq('business_id', business.id) as { data: Category[] | null }
 
       if (categories) {
         const allItems = categories.flatMap(cat => cat.items || [])
         setStats({
           categories: categories.length,
           items: allItems.length,
-          availableItems: allItems.filter((item: any) => item.available).length
+          availableItems: allItems.filter(item => item.available).length
         })
       }
     } catch (err) {

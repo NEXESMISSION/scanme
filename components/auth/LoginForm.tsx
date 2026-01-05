@@ -3,6 +3,9 @@
 import { useState } from 'react'
 import { createClient } from '@/lib/supabase/client'
 import { useRouter } from 'next/navigation'
+import type { Database } from '@/lib/supabase/database.types'
+
+type Profile = Database['public']['Tables']['profiles']['Row']
 
 export default function LoginForm() {
   const [email, setEmail] = useState('')
@@ -36,7 +39,7 @@ export default function LoginForm() {
         .from('profiles')
         .select('role')
         .eq('user_id', data.user.id)
-        .single()
+        .single() as { data: Profile | null }
 
       setTimeout(() => {
         if (profile?.role === 'super_admin') {
