@@ -1,162 +1,122 @@
 # QR Menu Builder
 
-A lean, local SaaS/service hybrid for creating beautiful QR code menus for restaurants.
-
-## Tech Stack
-
-- **Frontend**: Next.js 14 (App Router), TypeScript, Tailwind CSS
-- **Backend**: Supabase (Auth, PostgreSQL)
-- **Hosting**: Vercel (frontend), Supabase (backend)
+A modern, full-featured QR code menu builder for restaurants and cafes built with Next.js 14, Supabase, and Tailwind CSS.
 
 ## Features
 
-### Included (MVP)
-- Account creation with email, password, and phone number
-- One business per account
-- Menu builder (categories + items)
-- Public QR menu with SSR
-- Theme selection (classic, minimal, dark)
-- Manual subscription system
-- Super admin dashboard
+- 🎨 **Three Beautiful Themes** - Classic, Dark, and Minimal designs
+- 📱 **Mobile Responsive** - Works perfectly on all devices
+- 🔐 **Secure Authentication** - Email/password with role-based access
+- 🌐 **Arabic RTL Support** - Full Arabic translation and RTL layout
+- 📸 **Image Support** - Upload logos, item images, and category banners
+- 🔗 **Social Media Links** - Add Facebook, Instagram, Twitter, WhatsApp, and website links
+- ⏱️ **Time Management** - Subscription expiration tracking and countdown
+- 👨‍💼 **Admin Dashboard** - Simple, clean interface for managing your menu
+- 👑 **Super Admin** - Manage all businesses and subscriptions
 
-### Excluded (for now)
-- Custom domains
-- Payments (Stripe)
-- Online ordering
-- Staff roles
-- Analytics
-- Theme customization
-- Page builders
-- AI features
+## Tech Stack
 
-## Setup
+- **Next.js 14** (App Router)
+- **TypeScript**
+- **Supabase** (Auth, Database, Storage)
+- **Tailwind CSS**
+- **PostgreSQL** (via Supabase)
 
-### 1. Supabase Setup
+## Getting Started
 
-1. Create a new Supabase project
-2. Run `schema.sql` in the SQL Editor to create all tables and RLS policies
-3. Run the super admin setup section from `setup.sql`
-4. Get your Supabase URL and keys from Settings > API
+### Prerequisites
 
-### 2. Environment Variables
+- Node.js 18+ 
+- npm or yarn
+- Supabase account
 
-Create a `.env.local` file:
+### Installation
 
-```env
-NEXT_PUBLIC_SUPABASE_URL=your_supabase_project_url
-NEXT_PUBLIC_SUPABASE_ANON_KEY=your_supabase_anon_key
-SUPABASE_SERVICE_ROLE_KEY=your_supabase_service_role_key
-NEXT_PUBLIC_MENU_URL=https://menu.myowndomain.com
+1. Clone the repository:
+```bash
+git clone https://github.com/NEXESMISSION/scanme.git
+cd scanme
 ```
 
-### 3. Install Dependencies
-
+2. Install dependencies:
 ```bash
 npm install
 ```
 
-### 4. Run Development Server
+3. Set up environment variables:
+Create a `.env.local` file:
+```env
+NEXT_PUBLIC_SUPABASE_URL=your_supabase_url
+NEXT_PUBLIC_SUPABASE_ANON_KEY=your_supabase_anon_key
+SUPABASE_SERVICE_ROLE_KEY=your_supabase_service_role_key
+```
 
+4. Run database migrations:
+- Run `schema.sql` in Supabase SQL Editor
+- Run `add_images_schema.sql`
+- Run `add_social_media.sql`
+- Run `add_expires_at_column.sql`
+
+5. Start the development server:
 ```bash
 npm run dev
 ```
 
-### 5. Deploy
+6. Open [http://localhost:3000](http://localhost:3000) in your browser.
 
-Deploy to Vercel:
+## Deployment on Vercel
 
-```bash
-vercel
-```
+1. Push your code to GitHub
+
+2. Go to [Vercel](https://vercel.com) and sign in
+
+3. Click "New Project" and import your GitHub repository
+
+4. **Important**: Use a unique project name (not "scanme" if it's taken)
+
+5. Add environment variables in Vercel dashboard:
+   - `NEXT_PUBLIC_SUPABASE_URL`
+   - `NEXT_PUBLIC_SUPABASE_ANON_KEY`
+   - `SUPABASE_SERVICE_ROLE_KEY`
+
+6. Click "Deploy"
+
+## Environment Variables
+
+| Variable | Description |
+|----------|-------------|
+| `NEXT_PUBLIC_SUPABASE_URL` | Your Supabase project URL |
+| `NEXT_PUBLIC_SUPABASE_ANON_KEY` | Your Supabase anonymous key |
+| `SUPABASE_SERVICE_ROLE_KEY` | Your Supabase service role key (for super admin) |
+
+## Database Setup
+
+See the SQL files in the root directory:
+- `schema.sql` - Main database schema
+- `add_images_schema.sql` - Image support columns
+- `add_social_media.sql` - Social media links columns
+- `add_expires_at_column.sql` - Expiration tracking
+- `setup_storage.sql` - Storage bucket setup
 
 ## Project Structure
 
 ```
-├── app/
-│   ├── [slug]/          # Public menu pages
-│   ├── admin/           # Owner dashboard
-│   ├── super-admin/     # Super admin dashboard
-│   ├── login/           # Login page
-│   └── signup/          # Signup page
-├── components/
-│   ├── auth/            # Authentication components
-│   ├── dashboard/       # Dashboard navigation
-│   ├── menu/            # Menu builder components
-│   ├── theme/           # Theme selector
-│   ├── qr/              # QR code display
-│   └── super-admin/     # Super admin components
-├── lib/
-│   ├── auth.ts          # Authentication helpers
-│   ├── db/              # Database query functions
-│   ├── themes/          # Theme configurations
-│   ├── supabase/        # Supabase clients
-│   └── utils/           # Utility functions
-├── schema.sql           # Database schema
-└── setup.sql            # Setup scripts
+├── app/                    # Next.js app directory
+│   ├── [slug]/            # Public menu pages
+│   ├── admin/             # Owner dashboard
+│   ├── super-admin/       # Super admin dashboard
+│   └── api/               # API routes
+├── components/            # React components
+│   ├── admin/            # Admin dashboard components
+│   ├── menu/             # Menu display components
+│   └── auth/             # Authentication components
+├── lib/                   # Utility libraries
+│   ├── db/               # Database functions
+│   ├── supabase/         # Supabase clients
+│   └── themes/           # Theme configurations
+└── public/               # Static assets
 ```
-
-## Routes
-
-### Public
-- `/{slug}` - Public menu page
-
-### Owner Dashboard
-- `/admin` - Dashboard home
-- `/admin/menu` - Menu builder
-- `/admin/theme` - Theme selector
-- `/admin/qr` - QR code download
-
-### Super Admin
-- `/super-admin` - Super admin dashboard
-
-### Authentication
-- `/login` - Login page
-- `/signup` - Signup page
-
-## Database Schema
-
-See `schema.sql` for complete schema documentation.
-
-Key tables:
-- `profiles` - User profiles with roles
-- `businesses` - Business accounts
-- `themes` - Predefined themes
-- `categories` - Menu categories
-- `items` - Menu items
-- `subscriptions` - Manual subscription management
-
-## Subscription System
-
-Subscriptions are managed manually via super admin dashboard. No Stripe integration.
-
-1. Super admin sets `ends_at` date
-2. Daily cron checks expiration
-3. Expired subscriptions → business paused
-
-## Theme System
-
-Themes are configuration-only, no user customization:
-
-- **Classic**: Red primary, white background
-- **Minimal**: Black primary, light gray background
-- **Dark**: Blue primary, dark background
-
-Themes provide styling tokens, not components. One layout renders all themes.
-
-## Super Admin Setup
-
-1. Sign up normally
-2. Run in Supabase SQL Editor:
-
-```sql
-UPDATE profiles 
-SET role = 'super_admin' 
-WHERE email = 'your@email.com';
-```
-
-Or use the helper function in `setup.sql`.
 
 ## License
 
-Private - All rights reserved
-
+MIT
