@@ -2,6 +2,11 @@ import { notFound } from 'next/navigation'
 import { getBusinessBySlug, getBusinessWithCategoriesAndItems } from '@/lib/db/business'
 import { getTheme } from '@/lib/themes'
 import PublicMenu from '@/components/menu/PublicMenu'
+import type { Database } from '@/lib/supabase/database.types'
+
+type Category = Database['public']['Tables']['categories']['Row'] & {
+  items: Database['public']['Tables']['items']['Row'][]
+}
 
 export default async function PublicMenuPage({
   params,
@@ -36,10 +41,11 @@ export default async function PublicMenuPage({
   }
 
   // If paused or expired, still load categories but pass isPaused flag
-  let categories = []
+  let categories: Category[] = []
   if (!isPaused) {
     try {
-      categories = (await getBusinessWithCategoriesAndItems(business.id)) || []
+      const fetchedCategories = await getBusinessWithCategoriesAndItems(business.id)
+      categories = (fetchedCategories as Category[]) || []
     } catch (error) {
       console.error('Error loading categories:', error)
       categories = []
