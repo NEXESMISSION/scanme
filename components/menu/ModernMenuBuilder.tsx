@@ -19,6 +19,7 @@ export default function ModernMenuBuilder({ businessId, initialCategories }: Mod
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState<string | null>(null)
   const [editingItem, setEditingItem] = useState<string | null>(null)
+  const [editingCategory, setEditingCategory] = useState<string | null>(null)
   const [addingCategory, setAddingCategory] = useState(false)
   const [expandedCategory, setExpandedCategory] = useState<string | null>(
     initialCategories.length > 0 ? initialCategories[0].id : null
@@ -80,34 +81,112 @@ export default function ModernMenuBuilder({ businessId, initialCategories }: Mod
     description?: string
     price?: number
     image?: File
-  }) => {
+    removeImage?: boolean
+  }, itemId?: string) => {
     setLoading(true)
     try {
-      const { data: newItem, error: insertError } = await (supabase.from('items') as any)
-        .insert({
-          category_id: categoryId,
+      if (itemId) {
+        // Update existing item
+        const updateData: any = {
           name: itemData.name,
           description: itemData.description || null,
           price: itemData.price || null,
-          available: true
-        })
-        .select()
-        .single()
+        }
 
-      if (insertError) throw insertError
+        if (itemData.removeImage) {
+          // Remove image
+          const { data: oldItem } = await (supabase.from('items') as any)
+            .select('image_url')
+            .eq('id', itemId)
+            .single()
+          
+          if (oldItem?.image_url) {
+            try { await deleteImage(oldItem.image_url) } catch {}
+          }
+          updateData.image_url = null
+        } else if (itemData.image) {
+          // Upload new image
+          const { data: oldItem } = await (supabase.from('items') as any)
+            .select('image_url')
+            .eq('id', itemId)
+            .single()
+          
+          if (oldItem?.image_url) {
+            try { await deleteImage(oldItem.image_url) } catch {}
+          }
+          
+          const imageUrl = await uploadItemImage(itemId, itemData.image)
+          updateData.image_url = imageUrl
+        }
 
-      if (itemData.image && newItem?.id) {
-        try {
-          const imageUrl = await uploadItemImage(newItem.id, itemData.image)
-          await (supabase.from('items') as any)
-            .update({ image_url: imageUrl })
-            .eq('id', newItem.id)
-        } catch (imageError) {
-          console.error('Image upload failed:', imageError)
+        await (supabase.from('items') as any)
+          .update(updateData)
+          .eq('id', itemId)
+      } else {
+        // Create new item
+        const { data: newItem, error: insertError } = await (supabase.from('items') as any)
+          .insert({
+            category_id: categoryId,
+            name: itemData.name,
+            description: itemData.description || null,
+            price: itemData.price || null,
+            available: true
+          })
+          .select()
+          .single()
+
+        if (insertError) throw insertError
+
+        if (itemData.image && newItem?.id) {
+          try {
+            const imageUrl = await uploadItemImage(newItem.id, itemData.image)
+            await (supabase.from('items') as any)
+              .update({ image_url: imageUrl })
+              .eq('id', newItem.id)
+          } catch (imageError) {
+            console.error('Image upload failed:', imageError)
+          }
         }
       }
       
       setEditingItem(null)
+      await refreshCategories()
+    } catch (err: any) {
+      setError(err.message)
+    } finally {
+      setLoading(false)
+    }
+  }
+
+  const handleUpdateCategory = async (categoryId: string, name: string, imageFile?: File) => {
+    if (!name?.trim()) return
+    setLoading(true)
+    try {
+      const updateData: any = { name: name.trim() }
+
+      if (imageFile !== undefined) {
+        const category = categories.find(c => c.id === categoryId)
+        if (imageFile) {
+          // Upload new image
+          if (category?.image_url) {
+            try { await deleteImage(category.image_url) } catch {}
+          }
+          const imageUrl = await uploadCategoryImage(categoryId, imageFile)
+          updateData.image_url = imageUrl
+        } else {
+          // Delete image
+          if (category?.image_url) {
+            try { await deleteImage(category.image_url) } catch {}
+          }
+          updateData.image_url = null
+        }
+      }
+
+      await (supabase.from('categories') as any)
+        .update(updateData)
+        .eq('id', categoryId)
+      
+      setEditingCategory(null)
       await refreshCategories()
     } catch (err: any) {
       setError(err.message)
@@ -323,6 +402,13 @@ export default function ModernMenuBuilder({ businessId, initialCategories }: Mod
                         + إضافة عنصر
                       </button>
                       <button
+                        onClick={() => setEditingCategory(category.id)}
+                        disabled={loading}
+                        className="px-4 py-2 bg-blue-50 text-blue-600 rounded-xl text-sm lg:text-base font-medium hover:bg-blue-100 disabled:opacity-50"
+                      >
+                        ✏️ تعديل الفئة
+                      </button>
+                      <button
                         onClick={() => handleDeleteCategory(category.id, category.image_url)}
                         disabled={loading}
                         className="px-4 py-2 bg-red-50 text-red-600 rounded-xl text-sm lg:text-base font-medium hover:bg-red-100 disabled:opacity-50 ml-auto"
@@ -330,6 +416,20 @@ export default function ModernMenuBuilder({ businessId, initialCategories }: Mod
                         حذف الفئة
                       </button>
                     </div>
+
+                    {/* Edit Category Form */}
+                    {editingCategory === category.id && (
+                      <div className="p-5 lg:p-6 border-t border-zinc-100">
+                        <CategoryForm
+                          onSave={(name, image) => handleUpdateCategory(category.id, name, image)}
+                          onCancel={() => setEditingCategory(null)}
+                          loading={loading}
+                          initialName={category.name}
+                          initialImageUrl={category.image_url}
+                          isEdit={true}
+                        />
+                      </div>
+                    )}
 
                     {/* Add Item Form */}
                     {editingItem === 'new-' + category.id && (
@@ -345,56 +445,85 @@ export default function ModernMenuBuilder({ businessId, initialCategories }: Mod
                     {/* Items */}
                     <div className="divide-y divide-zinc-100">
                       {category.items?.map((item) => (
-                        <div 
-                          key={item.id} 
-                          className={`p-5 lg:p-6 flex items-center gap-4 ${!item.available ? 'opacity-50' : ''}`}
-                        >
-                          {item.image_url ? (
-                            <img 
-                              src={item.image_url} 
-                              alt="" 
-                              className="w-14 h-14 lg:w-16 lg:h-16 rounded-xl object-cover flex-shrink-0"
-                            />
+                        <div key={item.id}>
+                          {editingItem === 'edit-' + item.id ? (
+                            /* Edit Item Form */
+                            <div className="p-5 lg:p-6 border-t border-zinc-100">
+                              <ItemForm
+                                onSave={(data) => handleSaveItem(category.id, data, item.id)}
+                                onCancel={() => setEditingItem(null)}
+                                loading={loading}
+                                initialData={{
+                                  name: item.name,
+                                  description: item.description || '',
+                                  price: item.price ? item.price.toString() : '',
+                                }}
+                                initialImageUrl={item.image_url}
+                                isEdit={true}
+                              />
+                            </div>
                           ) : (
-                            <div className="w-14 h-14 lg:w-16 lg:h-16 rounded-xl bg-zinc-100 flex items-center justify-center text-zinc-300 text-xs flex-shrink-0">
-                              صورة
+                            /* Item Display */
+                            <div 
+                              className={`p-5 lg:p-6 flex items-center gap-4 ${!item.available ? 'opacity-50' : ''}`}
+                            >
+                              {item.image_url ? (
+                                <img 
+                                  src={item.image_url} 
+                                  alt="" 
+                                  className="w-14 h-14 lg:w-16 lg:h-16 rounded-xl object-cover flex-shrink-0"
+                                />
+                              ) : (
+                                <div className="w-14 h-14 lg:w-16 lg:h-16 rounded-xl bg-zinc-100 flex items-center justify-center text-zinc-300 text-xs flex-shrink-0">
+                                  صورة
+                                </div>
+                              )}
+                              
+                              <div className="flex-1 min-w-0">
+                                <div className="flex items-center gap-3">
+                                  <h4 className="font-semibold text-zinc-900 text-base lg:text-lg truncate">{item.name}</h4>
+                                  {item.price && (
+                                    <span className="text-sm lg:text-base font-bold text-zinc-600 whitespace-nowrap" dir="ltr">
+                                      {Number(item.price).toFixed(2)} TD
+                                    </span>
+                                  )}
+                                </div>
+                                {item.description && (
+                                  <p className="text-sm lg:text-base text-zinc-500 truncate mt-1">{item.description}</p>
+                                )}
+                              </div>
+                              
+                              <div className="flex items-center gap-2 flex-shrink-0">
+                                <button
+                                  onClick={() => setEditingItem('edit-' + item.id)}
+                                  className="px-3 py-1.5 bg-blue-50 text-blue-600 rounded-lg text-xs lg:text-sm font-medium hover:bg-blue-100 transition-colors"
+                                  title="تعديل"
+                                >
+                                  ✏️
+                                </button>
+                                <button
+                                  onClick={() => toggleAvailability(item.id, item.available)}
+                                  className={`w-10 h-6 rounded-full transition-colors relative ${
+                                    item.available ? 'bg-green-500' : 'bg-zinc-300'
+                                  }`}
+                                  title={item.available ? 'إخفاء' : 'إظهار'}
+                                >
+                                  <span 
+                                    className={`absolute top-1 w-4 h-4 rounded-full bg-white shadow transition-all ${
+                                      item.available ? 'left-5' : 'left-1'
+                                    }`}
+                                  />
+                                </button>
+                                <button
+                                  onClick={() => handleDeleteItem(item.id, item.image_url)}
+                                  className="text-zinc-400 hover:text-red-500 text-lg"
+                                  title="حذف"
+                                >
+                                  ✕
+                                </button>
+                              </div>
                             </div>
                           )}
-                          
-                          <div className="flex-1 min-w-0">
-                            <div className="flex items-center gap-3">
-                              <h4 className="font-semibold text-zinc-900 text-base lg:text-lg truncate">{item.name}</h4>
-                              {item.price && (
-                                <span className="text-sm lg:text-base font-bold text-zinc-600 whitespace-nowrap" dir="ltr">
-                                  {Number(item.price).toFixed(2)} TD
-                                </span>
-                              )}
-                            </div>
-                            {item.description && (
-                              <p className="text-sm lg:text-base text-zinc-500 truncate mt-1">{item.description}</p>
-                            )}
-                          </div>
-                          
-                          <div className="flex items-center gap-3 flex-shrink-0">
-                            <button
-                              onClick={() => toggleAvailability(item.id, item.available)}
-                              className={`w-10 h-6 rounded-full transition-colors relative ${
-                                item.available ? 'bg-green-500' : 'bg-zinc-300'
-                              }`}
-                            >
-                              <span 
-                                className={`absolute top-1 w-4 h-4 rounded-full bg-white shadow transition-all ${
-                                  item.available ? 'left-5' : 'left-1'
-                                }`}
-                              />
-                            </button>
-                            <button
-                              onClick={() => handleDeleteItem(item.id, item.image_url)}
-                              className="text-zinc-400 hover:text-red-500 text-lg"
-                            >
-                              ✕
-                            </button>
-                          </div>
                         </div>
                       ))}
                       
@@ -419,19 +548,30 @@ export default function ModernMenuBuilder({ businessId, initialCategories }: Mod
 function CategoryForm({
   onSave,
   onCancel,
-  loading
+  loading,
+  initialName = '',
+  initialImageUrl = null,
+  isEdit = false
 }: {
   onSave: (name: string, image?: File) => void
   onCancel: () => void
   loading: boolean
+  initialName?: string
+  initialImageUrl?: string | null
+  isEdit?: boolean
 }) {
-  const [name, setName] = useState('')
+  const [name, setName] = useState(initialName)
   const [image, setImage] = useState<File | null>(null)
+  const [removeImage, setRemoveImage] = useState(false)
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault()
     if (!name.trim()) return
-    onSave(name.trim(), image || undefined)
+    if (isEdit && removeImage && !image) {
+      onSave(name.trim(), undefined) // Pass undefined to remove image
+    } else {
+      onSave(name.trim(), image || undefined)
+    }
   }
 
   return (
@@ -458,8 +598,25 @@ function CategoryForm({
         </label>
       </div>
       
+      {isEdit && initialImageUrl && !image && !removeImage && (
+        <div className="mt-3 flex items-center gap-3">
+          <img 
+            src={initialImageUrl} 
+            alt="Current" 
+            className="w-16 h-16 rounded-xl object-cover border border-zinc-200"
+          />
+          <button
+            type="button"
+            onClick={() => setRemoveImage(true)}
+            className="px-3 py-2 bg-red-50 text-red-600 rounded-lg text-sm font-medium hover:bg-red-100"
+          >
+            حذف الصورة
+          </button>
+        </div>
+      )}
+      
       {image && (
-        <p className="text-sm lg:text-base text-zinc-500 mt-3">صورة: {image.name}</p>
+        <p className="text-sm lg:text-base text-zinc-500 mt-3">صورة جديدة: {image.name}</p>
       )}
       
       <div className="flex gap-3 mt-4">
@@ -468,7 +625,7 @@ function CategoryForm({
           disabled={loading || !name.trim()}
           className="px-5 py-3 bg-zinc-900 text-white rounded-xl text-base lg:text-lg font-medium hover:bg-zinc-800 disabled:opacity-50"
         >
-          {loading ? 'جاري الإنشاء...' : 'إنشاء'}
+          {loading ? (isEdit ? 'جاري التحديث...' : 'جاري الإنشاء...') : (isEdit ? 'حفظ التغييرات' : 'إنشاء')}
         </button>
         <button
           type="button"
@@ -486,16 +643,23 @@ function CategoryForm({
 function ItemForm({ 
   onSave, 
   onCancel, 
-  loading 
+  loading,
+  initialData,
+  initialImageUrl,
+  isEdit = false
 }: { 
-  onSave: (data: { name: string; description?: string; price?: number; image?: File }) => void
+  onSave: (data: { name: string; description?: string; price?: number; image?: File; removeImage?: boolean }) => void
   onCancel: () => void
   loading: boolean
+  initialData?: { name: string; description: string; price: string }
+  initialImageUrl?: string | null
+  isEdit?: boolean
 }) {
-  const [name, setName] = useState('')
-  const [description, setDescription] = useState('')
-  const [price, setPrice] = useState('')
+  const [name, setName] = useState(initialData?.name || '')
+  const [description, setDescription] = useState(initialData?.description || '')
+  const [price, setPrice] = useState(initialData?.price || '')
   const [image, setImage] = useState<File | null>(null)
+  const [removeImage, setRemoveImage] = useState(false)
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault()
@@ -504,7 +668,8 @@ function ItemForm({
       name: name.trim(),
       description: description.trim() || undefined,
       price: price ? parseFloat(price) : undefined,
-      image: image || undefined
+      image: image || undefined,
+      removeImage: isEdit && removeImage && !image ? true : undefined
     })
   }
 
@@ -538,17 +703,37 @@ function ItemForm({
         />
       </div>
       
+      {isEdit && initialImageUrl && !image && !removeImage && (
+        <div className="flex items-center gap-3 mb-4">
+          <img 
+            src={initialImageUrl} 
+            alt="Current" 
+            className="w-20 h-20 rounded-xl object-cover border border-zinc-200"
+          />
+          <button
+            type="button"
+            onClick={() => setRemoveImage(true)}
+            className="px-3 py-2 bg-red-50 text-red-600 rounded-lg text-sm font-medium hover:bg-red-100"
+          >
+            حذف الصورة
+          </button>
+        </div>
+      )}
+
       <div className="flex items-center gap-4">
         <label className="px-4 py-2 bg-zinc-100 text-zinc-600 rounded-xl text-sm lg:text-base cursor-pointer hover:bg-zinc-200 transition-colors flex items-center gap-2">
           <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z" />
           </svg>
-          {image ? image.name.slice(0, 15) + '...' : 'إضافة صورة'}
+          {image ? image.name.slice(0, 15) + '...' : (isEdit && removeImage ? 'تم تحديد الحذف' : 'إضافة صورة')}
           <input
             type="file"
             accept="image/*"
             className="hidden"
-            onChange={(e) => setImage(e.target.files?.[0] || null)}
+            onChange={(e) => {
+              setImage(e.target.files?.[0] || null)
+              setRemoveImage(false)
+            }}
           />
         </label>
         
@@ -566,7 +751,7 @@ function ItemForm({
           disabled={loading || !name.trim()}
           className="px-5 py-2 bg-zinc-900 text-white rounded-xl text-base lg:text-lg font-medium hover:bg-zinc-800 disabled:opacity-50"
         >
-          {loading ? 'جاري الإضافة...' : 'إضافة عنصر'}
+          {loading ? (isEdit ? 'جاري التحديث...' : 'جاري الإضافة...') : (isEdit ? 'حفظ التغييرات' : 'إضافة عنصر')}
         </button>
       </div>
     </form>

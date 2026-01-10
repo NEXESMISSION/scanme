@@ -7,6 +7,10 @@ const nextConfig = {
         protocol: 'https',
         hostname: '805342.fs1.hubspotusercontent-na1.net',
       },
+      {
+        protocol: 'https',
+        hostname: 'www.thd.tn',
+      },
     ],
   },
 }

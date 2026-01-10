@@ -38,12 +38,20 @@ export default function DynamicFavicon({ logoUrl, businessName }: DynamicFavicon
     document.title = businessName
 
     return () => {
-      // Cleanup on unmount
-      if (link.parentNode) {
-        link.parentNode.removeChild(link)
+      // Cleanup on unmount - use .remove() which is safer than removeChild
+      try {
+        if (link && link.isConnected) {
+          link.remove()
+        }
+      } catch (e) {
+        // Element may have already been removed
       }
-      if (apple.parentNode) {
-        apple.parentNode.removeChild(apple)
+      try {
+        if (apple && apple.isConnected) {
+          apple.remove()
+        }
+      } catch (e) {
+        // Element may have already been removed
       }
     }
   }, [logoUrl, businessName])

@@ -15,8 +15,9 @@ export default function LoginForm() {
   const router = useRouter()
   const supabase = createClient()
 
-  const handleSubmit = async (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault()
+    e.stopPropagation()
     setError(null)
     setLoading(true)
 
@@ -56,7 +57,13 @@ export default function LoginForm() {
   }
 
   return (
-    <form className="space-y-5" onSubmit={handleSubmit} dir="rtl">
+    <form 
+      className="space-y-5" 
+      onSubmit={handleSubmit} 
+      method="post"
+      dir="rtl"
+      noValidate
+    >
       <div className="space-y-4">
         <div>
           <label htmlFor="email" className="block text-sm font-medium text-zinc-700 mb-2">
