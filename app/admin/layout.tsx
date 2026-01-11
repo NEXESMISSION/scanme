@@ -20,10 +20,18 @@ export async function generateMetadata(): Promise<Metadata> {
     
     return {
       title: 'لوحة التحكم',
+      icons: {
+        icon: '/logo-icon.png',
+        apple: '/logo-icon.png',
+      },
     }
   } catch {
     return {
       title: 'لوحة التحكم',
+      icons: {
+        icon: '/logo-icon.png',
+        apple: '/logo-icon.png',
+      },
     }
   }
 }

@@ -2,16 +2,177 @@
 
 import Link from 'next/link'
 import Image from 'next/image'
+import { useState } from 'react'
 
 export default function LandingPage() {
+  const [mobileMenuOpen, setMobileMenuOpen] = useState(false)
+
   return (
     <div className="min-h-screen bg-white" dir="rtl">
+      {/* Header with Logo and Navigation */}
+      <header className="w-full py-4 px-4 sm:px-6 lg:px-8 border-b border-zinc-200 bg-white sticky top-0 z-50 shadow-sm">
+        <div className="max-w-7xl mx-auto flex items-center justify-between">
+          {/* Logo */}
+          <Link href="/" className="flex items-center">
+            <Image
+              src="/logo.png"
+              alt="Scaniha"
+              width={160}
+              height={56}
+              className="object-contain"
+            />
+          </Link>
+
+          {/* Desktop Navigation */}
+          <nav className="hidden lg:flex items-center gap-8">
+            <Link href="/" className="text-zinc-700 hover:text-orange-600 font-medium transition-colors">
+              الرئيسية
+            </Link>
+            <Link href="/signup" className="text-zinc-700 hover:text-orange-600 font-medium transition-colors">
+              إنشاء حساب
+            </Link>
+            <Link 
+              href="/login" 
+              className="px-6 py-2 bg-zinc-900 text-white rounded-lg font-semibold hover:bg-zinc-800 transition-colors"
+            >
+              تسجيل الدخول
+            </Link>
+          </nav>
+
+          {/* Mobile Menu Button */}
+          <button
+            onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
+            className="lg:hidden p-2 text-zinc-700 hover:text-orange-600 transition-colors"
+            aria-label="Toggle menu"
+          >
+            {mobileMenuOpen ? (
+              <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+              </svg>
+            ) : (
+              <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 6h16M4 12h16M4 18h16" />
+              </svg>
+            )}
+          </button>
+        </div>
+
+        {/* Mobile Menu */}
+        {mobileMenuOpen && (
+          <div className="lg:hidden border-t border-zinc-200 mt-4 pt-4 pb-4">
+            <nav className="flex flex-col gap-4 px-4">
+              <Link 
+                href="/" 
+                className="text-zinc-700 hover:text-orange-600 font-medium transition-colors py-2"
+                onClick={() => setMobileMenuOpen(false)}
+              >
+                الرئيسية
+              </Link>
+              <Link 
+                href="/signup" 
+                className="text-zinc-700 hover:text-orange-600 font-medium transition-colors py-2"
+                onClick={() => setMobileMenuOpen(false)}
+              >
+                إنشاء حساب
+              </Link>
+              <Link 
+                href="/login" 
+                className="px-6 py-2 bg-zinc-900 text-white rounded-lg font-semibold hover:bg-zinc-800 transition-colors text-center"
+                onClick={() => setMobileMenuOpen(false)}
+              >
+                تسجيل الدخول
+              </Link>
+            </nav>
+          </div>
+        )}
+      </header>
+
       {/* Modern Hero Section - Side by Side Layout */}
       <section className="relative min-h-[90vh] flex items-center overflow-hidden bg-white">
         <div className="container mx-auto px-4 sm:px-6 lg:px-8 py-12 lg:py-20">
-          <div className="grid lg:grid-cols-2 gap-8 lg:gap-12 items-center">
+          {/* Mobile Layout - Vertical Stack */}
+          <div className="flex flex-col lg:hidden gap-6 w-full">
+            {/* Badge */}
+            <div className="inline-flex items-center gap-2 bg-orange-50 px-4 py-2 rounded-full border border-orange-200 w-fit">
+              <span className="w-2 h-2 bg-green-500 rounded-full animate-pulse"></span>
+              <span className="text-orange-700 text-sm font-medium">تجربة مجانية 7 أيام</span>
+            </div>
+            
+            {/* Main Headline */}
+            <h1 className="text-4xl sm:text-5xl font-extrabold leading-tight text-zinc-900 text-right">
+              قائمة رقمية<br />
+              <span className="bg-gradient-to-r from-orange-600 to-amber-600 bg-clip-text text-transparent">
+                احترافية
+              </span>
+              <br />
+              في 5 دقائق
+            </h1>
+            
+            {/* Image - Between headline and subheadline on mobile */}
+            <div className="relative w-full">
+              <div className="relative w-full aspect-[16/9] rounded-3xl overflow-hidden shadow-2xl">
+                <Image
+                  src="/img1.png"
+                  alt="Scaniha"
+                  fill
+                  className="object-cover rounded-3xl"
+                  priority
+                  quality={90}
+                />
+              </div>
+            </div>
+            
+            {/* Subheadline */}
+            <p className="text-lg sm:text-xl text-zinc-600 leading-relaxed text-right">
+              أنشئ قائمة QR لمطعمك أو مقهىك بسرعة وسهولة
+              <br />
+              <span className="text-zinc-500">بدون معرفة تقنية</span>
+            </p>
+            
+            {/* CTA Buttons */}
+            <div className="flex flex-col sm:flex-row gap-4 pt-4">
+              <Link
+                href="/signup"
+                className="group relative px-8 py-4 bg-gradient-to-r from-orange-600 to-amber-600 text-white rounded-xl font-bold text-lg hover:shadow-xl hover:scale-105 transition-all duration-300 text-center"
+              >
+                <span className="relative z-10">ابدأ الآن مجاناً</span>
+                <span className="absolute inset-0 bg-gradient-to-r from-orange-700 to-amber-700 rounded-xl opacity-0 group-hover:opacity-100 transition-opacity"></span>
+              </Link>
+              <Link
+                href="/login"
+                className="px-8 py-4 bg-white text-zinc-900 rounded-xl font-semibold text-lg border-2 border-zinc-300 hover:border-zinc-400 hover:bg-zinc-50 transition-all duration-300 text-center"
+              >
+                تسجيل الدخول
+              </Link>
+            </div>
+            
+            {/* Trust Indicators */}
+            <div className="flex flex-wrap items-center gap-6 pt-4 text-zinc-600 text-sm">
+              <div className="flex items-center gap-2">
+                <svg className="w-5 h-5 text-green-500" fill="currentColor" viewBox="0 0 20 20">
+                  <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clipRule="evenodd" />
+                </svg>
+                <span>لا حاجة لبطاقة ائتمانية</span>
+              </div>
+              <div className="flex items-center gap-2">
+                <svg className="w-5 h-5 text-green-500" fill="currentColor" viewBox="0 0 20 20">
+                  <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clipRule="evenodd" />
+                </svg>
+                <span>إلغاء في أي وقت</span>
+              </div>
+              <div className="flex items-center gap-2">
+                <svg className="w-5 h-5 text-green-500" fill="currentColor" viewBox="0 0 20 20">
+                  <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clipRule="evenodd" />
+                </svg>
+                <span>قابل للتخصيص بالكامل</span>
+              </div>
+            </div>
+          </div>
+
+          {/* Desktop Layout - Side by Side */}
+          <div className="hidden lg:grid lg:grid-cols-2 gap-8 lg:gap-12 items-center">
             {/* Text Content - Right Side (RTL) */}
-            <div className="text-right order-2 lg:order-2 space-y-6">
+            <div className="text-right space-y-6 w-full">
               {/* Badge */}
               <div className="inline-flex items-center gap-2 bg-orange-50 px-4 py-2 rounded-full border border-orange-200">
                 <span className="w-2 h-2 bg-green-500 rounded-full animate-pulse"></span>
@@ -76,11 +237,11 @@ export default function LandingPage() {
             </div>
 
             {/* Image Content - Left Side (RTL) */}
-            <div className="relative order-1 lg:order-1">
-              <div className="relative aspect-square max-w-lg mx-auto rounded-3xl overflow-hidden">
+            <div className="relative w-full">
+              <div className="relative w-full aspect-square max-w-lg mx-auto rounded-3xl overflow-hidden shadow-2xl">
                 <Image
                   src="/img1.png"
-                  alt="QR Menu Builder"
+                  alt="Scaniha"
                   fill
                   className="object-cover rounded-3xl"
                   priority
@@ -277,37 +438,37 @@ export default function LandingPage() {
 
           {/* Payment Methods */}
           <div className="text-center mb-8">
-            <p className="text-sm text-zinc-600 mb-4">طرق الدفع المتاحة:</p>
-            <div className="flex flex-wrap items-center justify-center gap-6">
+            <p className="text-xl font-semibold text-zinc-900 mb-6">طرق الدفع المتاحة:</p>
+            <div className="flex flex-wrap items-center justify-center gap-8">
               {/* Flouci */}
-              <div className="flex items-center gap-2 bg-white px-4 py-2 rounded-lg border border-zinc-200 shadow-sm">
+              <div className="flex items-center gap-3 bg-white px-6 py-4 rounded-xl border-2 border-zinc-200 shadow-md hover:shadow-lg transition-shadow">
                 <Image
                   src="https://805342.fs1.hubspotusercontent-na1.net/hubfs/805342/flouci_logo_new.png"
                   alt="Flouci"
-                  width={80}
-                  height={30}
-                  className="object-contain h-8"
+                  width={120}
+                  height={45}
+                  className="object-contain h-12"
                 />
               </div>
               
               {/* D17 */}
-              <div className="flex items-center gap-2 bg-white px-4 py-2 rounded-lg border border-zinc-200 shadow-sm">
+              <div className="flex items-center gap-3 bg-white px-6 py-4 rounded-xl border-2 border-zinc-200 shadow-md hover:shadow-lg transition-shadow">
                 <Image
                   src="https://www.thd.tn/wp-content/uploads/2019/12/1200x630wa-1000x600.png"
                   alt="D17"
-                  width={80}
-                  height={30}
-                  className="object-contain h-8"
+                  width={120}
+                  height={45}
+                  className="object-contain h-12"
                 />
-                <span className="text-zinc-700 font-medium">D17</span>
+                <span className="text-zinc-900 font-bold text-lg">D17</span>
               </div>
               
               {/* Bank Transfer */}
-              <div className="flex items-center gap-2 bg-white px-4 py-2 rounded-lg border border-zinc-200 shadow-sm">
-                <svg className="w-8 h-8 text-zinc-700" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <div className="flex items-center gap-3 bg-white px-6 py-4 rounded-xl border-2 border-zinc-200 shadow-md hover:shadow-lg transition-shadow">
+                <svg className="w-12 h-12 text-zinc-900" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 10h18M7 15h1m4 0h1m-7 4h12a3 3 0 003-3V8a3 3 0 00-3-3H6a3 3 0 00-3 3v8a3 3 0 003 3z" />
                 </svg>
-                <span className="text-zinc-700 font-medium">تحويل بنكي</span>
+                <span className="text-zinc-900 font-bold text-lg">تحويل بنكي</span>
               </div>
             </div>
           </div>
@@ -360,7 +521,7 @@ export default function LandingPage() {
       <footer className="bg-zinc-900 text-zinc-400 py-8">
         <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="text-center">
-            <p className="mb-2">© 2024 QR Menu Builder. جميع الحقوق محفوظة.</p>
+            <p className="mb-2">© 2024 Scaniha. جميع الحقوق محفوظة.</p>
             <div className="flex justify-center gap-6 text-sm">
               <Link href="/login" className="hover:text-white transition-colors">تسجيل الدخول</Link>
               <Link href="/signup" className="hover:text-white transition-colors">إنشاء حساب</Link>

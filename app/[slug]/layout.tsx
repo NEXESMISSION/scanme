@@ -8,6 +8,10 @@ export async function generateMetadata({ params }: { params: { slug: string } })
     if (!business) {
       return {
         title: 'Menu',
+        icons: {
+          icon: '/logo-icon.png',
+          apple: '/logo-icon.png',
+        },
       }
     }
 
@@ -17,7 +21,10 @@ export async function generateMetadata({ params }: { params: { slug: string } })
       icons: business.logo_url ? {
         icon: business.logo_url,
         apple: business.logo_url,
-      } : undefined,
+      } : {
+        icon: '/logo-icon.png',
+        apple: '/logo-icon.png',
+      },
     }
   } catch {
     return {

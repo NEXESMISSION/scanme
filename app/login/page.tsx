@@ -1,16 +1,35 @@
 'use client'
 
 import LoginForm from '@/components/auth/LoginForm'
+import Image from 'next/image'
+import Link from 'next/link'
 
 export default function LoginPage() {
   return (
     <div className="min-h-screen bg-zinc-100 flex items-center justify-center p-4" dir="rtl">
       <div className="w-full max-w-md">
         <div className="bg-white rounded-2xl shadow-lg border border-zinc-200 p-8">
+          {/* Back Button */}
+          <Link
+            href="/"
+            className="inline-flex items-center gap-2 text-zinc-600 hover:text-zinc-900 mb-6 transition-colors"
+          >
+            <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 19l-7-7 7-7" />
+            </svg>
+            <span className="text-sm font-medium">العودة للصفحة الرئيسية</span>
+          </Link>
+
           {/* Logo/Header */}
           <div className="text-center mb-8">
-            <div className="w-16 h-16 rounded-xl bg-gradient-to-br from-orange-500 to-amber-500 flex items-center justify-center font-bold text-2xl text-white mx-auto mb-4">
-              Q
+            <div className="mx-auto mb-6 flex items-center justify-center">
+              <Image
+                src="/logo.png"
+                alt="Scaniha"
+                width={180}
+                height={60}
+                className="object-contain"
+              />
             </div>
             <h1 className="text-2xl lg:text-3xl font-bold text-zinc-900 mb-2">
               تسجيل الدخول

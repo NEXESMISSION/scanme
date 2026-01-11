@@ -2,11 +2,14 @@ import type { Metadata } from 'next'
 import './globals.css'
 
 export const metadata: Metadata = {
-  title: 'QR Menu Builder',
+  title: 'Scaniha',
   description: 'Create beautiful QR code menus for your restaurant',
   icons: {
     icon: [
-      { url: '/icon.svg', type: 'image/svg+xml' },
+      { url: '/logo-icon.png', type: 'image/png' },
+    ],
+    apple: [
+      { url: '/logo-icon.png', type: 'image/png' },
     ],
   },
 }

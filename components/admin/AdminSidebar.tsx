@@ -5,6 +5,7 @@ import { usePathname } from 'next/navigation'
 import { createClient } from '@/lib/supabase/client'
 import { useRouter } from 'next/navigation'
 import { useState } from 'react'
+import Image from 'next/image'
 
 const navItems = [
   { href: '/admin', label: 'لوحة التحكم', icon: (
@@ -42,13 +43,14 @@ export default function AdminSidebar() {
       {/* Desktop Sidebar */}
       <aside className="hidden lg:flex w-56 bg-zinc-950 text-white flex-col border-l border-zinc-800/50" dir="rtl">
         {/* Logo */}
-        <div className="h-16 flex items-center justify-start px-5 border-b border-zinc-800/50">
-          <div className="w-9 h-9 rounded-lg bg-gradient-to-br from-orange-500 to-amber-500 flex items-center justify-center font-bold text-base">
-            Q
-          </div>
-          <span className="mr-3 font-semibold text-base tracking-tight">
-            منشئ القوائم
-          </span>
+        <div className="h-16 flex items-center justify-center px-5 border-b border-zinc-800/50 bg-white">
+          <Image
+            src="/logo.png"
+            alt="Scaniha"
+            width={120}
+            height={40}
+            className="object-contain"
+          />
         </div>
 
         {/* Navigation */}
