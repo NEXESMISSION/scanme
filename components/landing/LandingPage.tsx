@@ -112,7 +112,7 @@ export default function LandingPage() {
             <div className="relative w-full">
               <div className="relative w-full aspect-[16/9] rounded-3xl overflow-hidden shadow-2xl">
                 <Image
-                  src="/img1.png"
+                  src="/hero img.jpeg"
                   alt="Scaniha"
                   fill
                   className="object-cover rounded-3xl"
@@ -240,7 +240,7 @@ export default function LandingPage() {
             <div className="relative w-full">
               <div className="relative w-full aspect-square max-w-lg mx-auto rounded-3xl overflow-hidden shadow-2xl">
                 <Image
-                  src="/img1.png"
+                  src="/hero img.jpeg"
                   alt="Scaniha"
                   fill
                   className="object-cover rounded-3xl"

@@ -29,7 +29,9 @@ export default function BusinessList({ businesses: initialBusinesses }: Business
   const [searchTerm, setSearchTerm] = useState('')
   const [loading, setLoading] = useState<string | null>(null)
   const [error, setError] = useState<string | null>(null)
+  const [success, setSuccess] = useState<string | null>(null)
   const [showTimeModal, setShowTimeModal] = useState<string | null>(null)
+  const [showDeleteConfirm, setShowDeleteConfirm] = useState<string | null>(null)
   const [customDays, setCustomDays] = useState('')
   const [customHours, setCustomHours] = useState('')
   const [customMinutes, setCustomMinutes] = useState('')
@@ -88,6 +90,35 @@ export default function BusinessList({ businesses: initialBusinesses }: Business
     handleSetTime(businessId, totalMinutes)
   }
 
+  const handleDeleteBusiness = async (businessId: string, businessName: string) => {
+    setLoading(`delete-${businessId}`)
+    setError(null)
+    setSuccess(null)
+
+    try {
+      const response = await fetch(`/api/super-admin/businesses/${businessId}`, {
+        method: 'DELETE',
+      })
+
+      if (!response.ok) {
+        const data = await response.json()
+        throw new Error(data.error || 'فشل في حذف الحساب')
+      }
+
+      // Remove the business from the list
+      setBusinesses(businesses.filter(b => b.id !== businessId))
+      setShowDeleteConfirm(null)
+      setSuccess(`تم حذف حساب "${businessName}" بنجاح`)
+      
+      // Clear success message after 5 seconds
+      setTimeout(() => setSuccess(null), 5000)
+    } catch (err: any) {
+      setError(err.message || 'حدث خطأ أثناء حذف الحساب')
+    } finally {
+      setLoading(null)
+    }
+  }
+
   const getTimeRemaining = (expiresAt: string | null, status: string) => {
     if (!expiresAt) return null
     
@@ -122,6 +153,13 @@ export default function BusinessList({ businesses: initialBusinesses }: Business
         <div className="mb-4 p-4 bg-red-50 border border-red-200 text-red-700 rounded-xl flex justify-between items-center">
           <span>{error}</span>
           <button onClick={() => setError(null)} className="text-red-400 hover:text-red-600">✕</button>
+        </div>
+      )}
+
+      {success && (
+        <div className="mb-4 p-4 bg-green-50 border border-green-200 text-green-700 rounded-xl flex justify-between items-center">
+          <span>{success}</span>
+          <button onClick={() => setSuccess(null)} className="text-green-400 hover:text-green-600">✕</button>
         </div>
       )}
 
@@ -219,14 +257,38 @@ export default function BusinessList({ businesses: initialBusinesses }: Business
                     )}
                   </div>
 
-                  {/* Time Button */}
-                  <button
-                    onClick={() => setShowTimeModal(business.id)}
-                    disabled={loading === business.id}
-                    className="px-4 py-2 bg-zinc-900 text-white rounded-xl text-sm font-medium hover:bg-zinc-800 disabled:opacity-50"
-                  >
-                    {loading === business.id ? 'جاري...' : 'تحديد الوقت'}
-                  </button>
+                  {/* Action Buttons */}
+                  <div className="flex gap-2">
+                    <button
+                      onClick={() => setShowTimeModal(business.id)}
+                      disabled={loading === business.id || loading === `delete-${business.id}`}
+                      className="px-4 py-2 bg-zinc-900 text-white rounded-xl text-sm font-medium hover:bg-zinc-800 disabled:opacity-50"
+                    >
+                      {loading === business.id ? 'جاري...' : 'تحديد الوقت'}
+                    </button>
+                    <button
+                      onClick={() => setShowDeleteConfirm(business.id)}
+                      disabled={loading === business.id || loading === `delete-${business.id}`}
+                      className="px-4 py-2 bg-red-600 text-white rounded-xl text-sm font-medium hover:bg-red-700 disabled:opacity-50 flex items-center gap-1"
+                    >
+                      {loading === `delete-${business.id}` ? (
+                        <>
+                          <svg className="animate-spin h-4 w-4" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+                            <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
+                            <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+                          </svg>
+                          جاري الحذف...
+                        </>
+                      ) : (
+                        <>
+                          <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
+                          </svg>
+                          حذف
+                        </>
+                      )}
+                    </button>
+                  </div>
                 </div>
               </div>
 
@@ -310,6 +372,61 @@ export default function BusinessList({ businesses: initialBusinesses }: Business
                         إلغاء
                       </button>
                     </div>
+                  </div>
+                </div>
+              )}
+
+              {/* Delete Confirmation Modal */}
+              {showDeleteConfirm === business.id && (
+                <div className="mt-4 pt-4 border-t border-red-100 bg-red-50 rounded-lg p-4">
+                  <div className="flex items-start gap-3 mb-4">
+                    <div className="flex-shrink-0 mt-0.5">
+                      <svg className="w-6 h-6 text-red-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" />
+                      </svg>
+                    </div>
+                    <div className="flex-1">
+                      <h4 className="text-sm font-bold text-red-900 mb-1">تأكيد الحذف</h4>
+                      <p className="text-sm text-red-700">
+                        هل أنت متأكد من حذف حساب <strong>"{business.name}"</strong>؟
+                        <br />
+                        <span className="text-xs text-red-600 mt-1 block">
+                          سيتم حذف جميع البيانات المرتبطة بهذا الحساب بشكل نهائي ولا يمكن التراجع عن هذا الإجراء.
+                        </span>
+                      </p>
+                    </div>
+                  </div>
+                  
+                  <div className="flex gap-2 justify-end">
+                    <button
+                      onClick={() => setShowDeleteConfirm(null)}
+                      disabled={loading === `delete-${business.id}`}
+                      className="px-4 py-2 text-zinc-600 text-sm font-medium hover:text-zinc-800 hover:bg-white rounded-lg transition-colors disabled:opacity-50"
+                    >
+                      إلغاء
+                    </button>
+                    <button
+                      onClick={() => handleDeleteBusiness(business.id, business.name)}
+                      disabled={loading === `delete-${business.id}`}
+                      className="px-4 py-2 bg-red-600 text-white rounded-lg text-sm font-medium hover:bg-red-700 disabled:opacity-50 flex items-center gap-2"
+                    >
+                      {loading === `delete-${business.id}` ? (
+                        <>
+                          <svg className="animate-spin h-4 w-4" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+                            <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
+                            <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+                          </svg>
+                          جاري الحذف...
+                        </>
+                      ) : (
+                        <>
+                          <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
+                          </svg>
+                          نعم، احذف الحساب
+                        </>
+                      )}
+                    </button>
                   </div>
                 </div>
               )}
