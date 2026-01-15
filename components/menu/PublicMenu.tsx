@@ -447,7 +447,7 @@ export default function PublicMenu({ business, categories, theme }: PublicMenuPr
                           />
                           
                           {/* RIGHT: Image + Title + Description */}
-                          <div className="flex gap-3 flex-shrink-0 max-w-[70%]">
+                          <div className="flex gap-3 min-w-0 overflow-hidden">
                             {item.image_url && (
                               <div 
                                 className={`flex-shrink-0 w-16 h-16 sm:w-20 sm:h-20 rounded-xl overflow-hidden ${isDark ? 'card-glow' : ''}`}
@@ -461,9 +461,9 @@ export default function PublicMenu({ business, categories, theme }: PublicMenuPr
                               </div>
                             )}
                             
-                            <div className="min-w-0 text-left">
+                            <div className="min-w-0 text-left overflow-hidden">
                               <h3 
-                                className="font-medium text-base sm:text-lg text-left"
+                                className="font-medium text-base sm:text-lg text-left break-words"
                                 style={{ 
                                   fontFamily: "'Cairo', " + theme.font.heading,
                                   color: theme.colors.text,
@@ -474,7 +474,7 @@ export default function PublicMenu({ business, categories, theme }: PublicMenuPr
                               
                               {item.description && (
                                 <p 
-                                  className="text-sm mt-1.5 leading-relaxed text-left"
+                                  className="text-sm mt-1.5 leading-relaxed text-left break-words"
                                   style={{ color: theme.colors.muted }}
                                 >
                                   {item.description}
@@ -894,7 +894,7 @@ function MinimalLayout({
                       <div className="flex-1" />
                       
                       {/* RIGHT: Image + Name + Description */}
-                      <div className="flex gap-3 flex-shrink-0 max-w-[70%]">
+                      <div className="flex gap-3 min-w-0 overflow-hidden">
                         {item.image_url && (
                           <div 
                             className="flex-shrink-0 w-16 h-16 sm:w-20 sm:h-20 rounded-lg overflow-hidden"
@@ -908,16 +908,16 @@ function MinimalLayout({
                           </div>
                         )}
                         
-                        <div className="min-w-0 text-left">
+                        <div className="min-w-0 text-left overflow-hidden">
                           <h3 
-                            className="font-semibold text-base text-left"
+                            className="font-semibold text-base text-left break-words"
                             style={{ fontFamily: "'Cairo', " + theme.font.heading }}
                           >
                             {item.name}
                           </h3>
                           {item.description && !expandedItem && (
                             <p 
-                              className="text-sm mt-0.5 line-clamp-1 text-left"
+                              className="text-sm mt-0.5 line-clamp-1 text-left break-words"
                               style={{ color: theme.colors.muted }}
                             >
                               {item.description}
@@ -935,7 +935,7 @@ function MinimalLayout({
                           >
                             {item.description && (
                               <p 
-                                className="text-sm leading-relaxed text-left"
+                                className="text-sm leading-relaxed text-left break-words"
                                 style={{ color: theme.colors.muted }}
                               >
                                 {item.description}
