@@ -62,7 +62,7 @@ export default async function PublicMenuPage({
   }
 
   // Generate structured data for SEO
-  const baseUrl = process.env.NEXT_PUBLIC_SITE_URL || 'https://yourdomain.com'
+  const baseUrl = process.env.NEXT_PUBLIC_SITE_URL || 'https://scaniha.com'
   const menuUrl = `${baseUrl}/${business.slug}`
 
   const structuredData = {
@@ -116,7 +116,7 @@ export async function generateMetadata({ params }: { params: { slug: string } })
       }
     }
 
-    const baseUrl = process.env.NEXT_PUBLIC_SITE_URL || 'https://yourdomain.com'
+    const baseUrl = process.env.NEXT_PUBLIC_SITE_URL || 'https://scaniha.com'
     const menuUrl = `${baseUrl}/${business.slug}`
     const description = `View the menu for ${business.name}. Browse our delicious selection of food and beverages.`
     

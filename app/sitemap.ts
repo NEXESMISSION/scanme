@@ -2,7 +2,7 @@ import { MetadataRoute } from 'next'
 import { getActiveBusinesses } from '@/lib/db/business'
 
 export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
-  const baseUrl = process.env.NEXT_PUBLIC_SITE_URL || 'https://yourdomain.com'
+  const baseUrl = process.env.NEXT_PUBLIC_SITE_URL || 'https://scaniha.com'
   
   // Get all active businesses
   const businesses = await getActiveBusinesses()
