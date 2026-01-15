@@ -461,9 +461,9 @@ export default function PublicMenu({ business, categories, theme }: PublicMenuPr
                               </div>
                             )}
                             
-                            <div className="min-w-0">
+                            <div className="min-w-0 text-left">
                               <h3 
-                                className="font-medium text-base sm:text-lg"
+                                className="font-medium text-base sm:text-lg text-left"
                                 style={{ 
                                   fontFamily: "'Cairo', " + theme.font.heading,
                                   color: theme.colors.text,
@@ -474,7 +474,7 @@ export default function PublicMenu({ business, categories, theme }: PublicMenuPr
                               
                               {item.description && (
                                 <p 
-                                  className="text-sm mt-1.5 leading-relaxed"
+                                  className="text-sm mt-1.5 leading-relaxed text-left"
                                   style={{ color: theme.colors.muted }}
                                 >
                                   {item.description}
@@ -908,16 +908,16 @@ function MinimalLayout({
                           </div>
                         )}
                         
-                        <div className="min-w-0">
+                        <div className="min-w-0 text-left">
                           <h3 
-                            className="font-semibold text-base"
+                            className="font-semibold text-base text-left"
                             style={{ fontFamily: "'Cairo', " + theme.font.heading }}
                           >
                             {item.name}
                           </h3>
                           {item.description && !expandedItem && (
                             <p 
-                              className="text-sm mt-0.5 line-clamp-1"
+                              className="text-sm mt-0.5 line-clamp-1 text-left"
                               style={{ color: theme.colors.muted }}
                             >
                               {item.description}
@@ -935,7 +935,7 @@ function MinimalLayout({
                           >
                             {item.description && (
                               <p 
-                                className="text-sm leading-relaxed"
+                                className="text-sm leading-relaxed text-left"
                                 style={{ color: theme.colors.muted }}
                               >
                                 {item.description}
