@@ -1,8 +1,9 @@
 'use client'
 
-import { useState } from 'react'
+import { useState, useRef } from 'react'
 import { createClient } from '@/lib/supabase/client'
 import { uploadItemImage, uploadCategoryImage, deleteImage } from '@/lib/storage'
+import * as XLSX from 'xlsx'
 import type { Database } from '@/lib/supabase/database.types'
 
 type Category = Database['public']['Tables']['categories']['Row'] & {
@@ -24,6 +25,9 @@ export default function ModernMenuBuilder({ businessId, initialCategories }: Mod
   const [expandedCategory, setExpandedCategory] = useState<string | null>(
     initialCategories.length > 0 ? initialCategories[0].id : null
   )
+  const [showExcelImport, setShowExcelImport] = useState(false)
+  const [showExcelTemplate, setShowExcelTemplate] = useState(false)
+  const fileInputRef = useRef<HTMLInputElement>(null)
   const supabase = createClient()
 
   const refreshCategories = async () => {
@@ -267,6 +271,118 @@ export default function ModernMenuBuilder({ businessId, initialCategories }: Mod
     }
   }
 
+  const handleExcelImport = async (file: File) => {
+    setLoading(true)
+    setError(null)
+    
+    try {
+      const data = await file.arrayBuffer()
+      const workbook = XLSX.read(data, { type: 'array' })
+      const sheetName = workbook.SheetNames[0]
+      const worksheet = workbook.Sheets[sheetName]
+      const jsonData = XLSX.utils.sheet_to_json(worksheet, { header: 1 }) as any[][]
+
+      // Skip header row
+      const rows = jsonData.slice(1).filter(row => row && row.length > 0 && row[0])
+
+      if (rows.length === 0) {
+        throw new Error('الملف فارغ أو لا يحتوي على بيانات')
+      }
+
+      // Group items by category
+      const categoryMap = new Map<string, any[]>()
+      
+      for (const row of rows) {
+        const categoryName = String(row[0] || '').trim()
+        const itemName = String(row[1] || '').trim()
+        const description = row[2] ? String(row[2]).trim() : null
+        const price = row[3] ? parseFloat(String(row[3])) : null
+
+        if (!categoryName || !itemName) continue
+
+        if (!categoryMap.has(categoryName)) {
+          categoryMap.set(categoryName, [])
+        }
+        
+        categoryMap.get(categoryName)!.push({
+          name: itemName,
+          description: description || null,
+          price: price && !isNaN(price) ? price : null,
+        })
+      }
+
+      // Create categories and items
+      let position = categories.length
+      for (const [categoryName, items] of categoryMap.entries()) {
+        // Check if category exists
+        let categoryId = categories.find(c => c.name === categoryName)?.id
+
+        if (!categoryId) {
+          // Create new category
+          const { data: newCat, error: catError } = await (supabase.from('categories') as any)
+            .insert({ business_id: businessId, name: categoryName, position })
+            .select()
+            .single()
+          
+          if (catError) throw catError
+          categoryId = newCat.id
+          position++
+        }
+
+        // Insert items
+        if (items.length > 0) {
+          const itemsToInsert = items.map(item => ({
+            category_id: categoryId,
+            name: item.name,
+            description: item.description,
+            price: item.price,
+            available: true,
+          }))
+
+          const { error: itemsError } = await (supabase.from('items') as any)
+            .insert(itemsToInsert)
+
+          if (itemsError) throw itemsError
+        }
+      }
+
+      await refreshCategories()
+      setShowExcelImport(false)
+      setError(null)
+    } catch (err: any) {
+      setError(err.message || 'فشل في استيراد البيانات من ملف Excel')
+    } finally {
+      setLoading(false)
+      if (fileInputRef.current) {
+        fileInputRef.current.value = ''
+      }
+    }
+  }
+
+  const downloadExcelTemplate = () => {
+    const templateData = [
+      ['الفئة', 'اسم العنصر', 'الوصف', 'السعر'],
+      ['المشروبات الساخنة', 'قهوة إسبريسو', 'قهوة إيطالية قوية', '3.50'],
+      ['المشروبات الساخنة', 'كابتشينو', 'إسبريسو مع حليب مبخر ورغوة', '4.75'],
+      ['المشروبات الباردة', 'قهوة مثلجة', 'قهوة باردة', '4.25'],
+      ['الحلويات', 'كرواسان', 'كرواسان بالزبدة', '3.25'],
+    ]
+
+    const ws = XLSX.utils.aoa_to_sheet(templateData)
+    const wb = XLSX.utils.book_new()
+    XLSX.utils.book_append_sheet(wb, ws, 'القائمة')
+    
+    // Set column widths
+    ws['!cols'] = [
+      { wch: 20 }, // الفئة
+      { wch: 25 }, // اسم العنصر
+      { wch: 40 }, // الوصف
+      { wch: 10 }, // السعر
+    ]
+
+    XLSX.writeFile(wb, 'نموذج_القائمة.xlsx')
+  }
+
   return (
     <div className="space-y-5">
       {error && (
@@ -276,22 +392,136 @@ export default function ModernMenuBuilder({ businessId, initialCategories }: Mod
         </div>
       )}
 
+      {/* Excel Import Section */}
+      {showExcelImport && (
+        <div className="bg-blue-50 border-2 border-blue-200 rounded-2xl p-6 space-y-4">
+          <div className="flex items-center justify-between">
+            <h3 className="text-lg font-bold text-blue-900">استيراد من ملف Excel</h3>
+            <button
+              onClick={() => {
+                setShowExcelImport(false)
+                setShowExcelTemplate(false)
+              }}
+              className="text-blue-600 hover:text-blue-800"
+            >
+              ✕
+            </button>
+          </div>
+          
+          {showExcelTemplate ? (
+            <div className="space-y-3">
+              <p className="text-sm text-blue-800 font-medium">هيكل ملف Excel:</p>
+              <div className="bg-white rounded-lg p-4 overflow-x-auto">
+                <table className="w-full text-sm border-collapse">
+                  <thead>
+                    <tr className="bg-blue-100">
+                      <th className="border border-blue-300 px-3 py-2 text-right">الفئة</th>
+                      <th className="border border-blue-300 px-3 py-2 text-right">اسم العنصر</th>
+                      <th className="border border-blue-300 px-3 py-2 text-right">الوصف</th>
+                      <th className="border border-blue-300 px-3 py-2 text-right">السعر</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    <tr>
+                      <td className="border border-blue-200 px-3 py-2">المشروبات الساخنة</td>
+                      <td className="border border-blue-200 px-3 py-2">قهوة إسبريسو</td>
+                      <td className="border border-blue-200 px-3 py-2">قهوة إيطالية قوية</td>
+                      <td className="border border-blue-200 px-3 py-2">3.50</td>
+                    </tr>
+                    <tr>
+                      <td className="border border-blue-200 px-3 py-2">المشروبات الساخنة</td>
+                      <td className="border border-blue-200 px-3 py-2">كابتشينو</td>
+                      <td className="border border-blue-200 px-3 py-2">إسبريسو مع حليب مبخر</td>
+                      <td className="border border-blue-200 px-3 py-2">4.75</td>
+                    </tr>
+                  </tbody>
+                </table>
+              </div>
+              <div className="flex gap-3">
+                <button
+                  onClick={downloadExcelTemplate}
+                  className="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 text-sm font-medium"
+                >
+                  تحميل نموذج Excel
+                </button>
+                <button
+                  onClick={() => setShowExcelTemplate(false)}
+                  className="px-4 py-2 bg-white text-blue-600 border border-blue-300 rounded-lg hover:bg-blue-50 text-sm font-medium"
+                >
+                  إغلاق
+                </button>
+              </div>
+            </div>
+          ) : (
+            <div className="space-y-4">
+              <div className="flex gap-3">
+                <button
+                  onClick={() => setShowExcelTemplate(true)}
+                  className="px-4 py-2 bg-white text-blue-600 border border-blue-300 rounded-lg hover:bg-blue-50 text-sm font-medium"
+                >
+                  عرض هيكل الملف
+                </button>
+                <button
+                  onClick={downloadExcelTemplate}
+                  className="px-4 py-2 bg-white text-blue-600 border border-blue-300 rounded-lg hover:bg-blue-50 text-sm font-medium"
+                >
+                  تحميل نموذج
+                </button>
+              </div>
+              
+              <div>
+                <label className="block mb-2 text-sm font-medium text-blue-900">
+                  اختر ملف Excel (.xlsx أو .xls)
+                </label>
+                <input
+                  ref={fileInputRef}
+                  type="file"
+                  accept=".xlsx,.xls"
+                  onChange={(e) => {
+                    const file = e.target.files?.[0]
+                    if (file) {
+                      handleExcelImport(file)
+                    }
+                  }}
+                  className="block w-full text-sm text-blue-600 file:mr-4 file:py-2 file:px-4 file:rounded-lg file:border-0 file:text-sm file:font-semibold file:bg-blue-600 file:text-white hover:file:bg-blue-700"
+                />
+                <p className="mt-2 text-xs text-blue-700">
+                  يجب أن يحتوي الملف على الأعمدة: الفئة، اسم العنصر، الوصف (اختياري)، السعر (اختياري)
+                </p>
+              </div>
+            </div>
+          )}
+        </div>
+      )}
+
       {/* Add Category */}
-      {!addingCategory ? (
-        <button
-          onClick={() => setAddingCategory(true)}
-          disabled={loading}
-          className="w-full py-4 border-2 border-dashed border-zinc-300 rounded-2xl text-base lg:text-lg font-medium text-zinc-500 hover:text-zinc-700 hover:border-zinc-400 transition-colors disabled:opacity-50"
-        >
-          + إضافة فئة
-        </button>
-      ) : (
+      {!addingCategory && !showExcelImport ? (
+        <div className="flex gap-3">
+          <button
+            onClick={() => setAddingCategory(true)}
+            disabled={loading}
+            className="flex-1 py-4 border-2 border-dashed border-zinc-300 rounded-2xl text-base lg:text-lg font-medium text-zinc-500 hover:text-zinc-700 hover:border-zinc-400 transition-colors disabled:opacity-50"
+          >
+            + إضافة فئة
+          </button>
+          <button
+            onClick={() => setShowExcelImport(true)}
+            disabled={loading}
+            className="px-6 py-4 bg-blue-600 text-white rounded-2xl text-base lg:text-lg font-medium hover:bg-blue-700 transition-colors disabled:opacity-50 flex items-center gap-2"
+          >
+            <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-8l-4-4m0 0L8 8m4-4v12" />
+            </svg>
+            استيراد Excel
+          </button>
+        </div>
+      ) : addingCategory ? (
         <CategoryForm
           onSave={handleAddCategory}
           onCancel={() => setAddingCategory(false)}
           loading={loading}
         />
-      )}
+      ) : null}
 
       {/* Categories */}
       {categories.length === 0 && !addingCategory ? (
@@ -480,16 +710,16 @@ export default function ModernMenuBuilder({ businessId, initialCategories }: Mod
                               )}
                               
                               <div className="flex-1 min-w-0">
-                                <div className="flex items-center gap-3">
-                                  <h4 className="font-semibold text-zinc-900 text-base lg:text-lg truncate">{item.name}</h4>
+                                <div className="flex flex-col sm:flex-row sm:items-center gap-2 sm:gap-3">
+                                  <h4 className="font-semibold text-zinc-900 text-sm lg:text-lg break-words">{item.name}</h4>
                                   {item.price && (
-                                    <span className="text-sm lg:text-base font-bold text-zinc-600 whitespace-nowrap" dir="ltr">
+                                    <span className="text-xs lg:text-base font-bold text-zinc-600 whitespace-nowrap" dir="ltr">
                                       {Number(item.price).toFixed(2)} TD
                                     </span>
                                   )}
                                 </div>
                                 {item.description && (
-                                  <p className="text-sm lg:text-base text-zinc-500 truncate mt-1">{item.description}</p>
+                                  <p className="text-xs lg:text-base text-zinc-500 break-words mt-1">{item.description}</p>
                                 )}
                               </div>
                               

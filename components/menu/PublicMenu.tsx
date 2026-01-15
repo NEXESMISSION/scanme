@@ -252,24 +252,11 @@ export default function PublicMenu({ business, categories, theme }: PublicMenuPr
           <div className="relative max-w-2xl mx-auto px-6 text-center">
             {business.logo_url && (
               <div className="mb-6 fade-in" style={{ animationDelay: '0.1s' }}>
-                <div 
-                  className={`inline-block rounded-full p-1 ${isDark ? 'shimmer-border' : ''}`}
-                  style={{ 
-                    background: isDark 
-                      ? `linear-gradient(135deg, ${theme.colors.primary}20, ${theme.colors.secondary})` 
-                      : theme.colors.secondary,
-                  }}
-                >
-                  <img 
-                    src={business.logo_url} 
-                    alt={business.name}
-                    className="h-20 w-20 sm:h-24 sm:w-24 object-contain rounded-full"
-                    style={{ 
-                      border: `2px solid ${theme.colors.border}`,
-                      backgroundColor: theme.colors.secondary,
-                    }}
-                  />
-                </div>
+                <img 
+                  src={business.logo_url} 
+                  alt={business.name}
+                  className="h-20 w-auto sm:h-24 sm:w-auto object-contain mx-auto"
+                />
               </div>
             )}
             
@@ -439,22 +426,42 @@ export default function PublicMenu({ business, categories, theme }: PublicMenuPr
                         className={`menu-item rounded-xl p-4 ${isDark ? 'menu-item-dark' : 'menu-item-light'}`}
                         style={{ animationDelay: `${0.2 + itemIndex * 0.05}s` }}
                       >
-                        <div className="flex gap-4">
-                          {item.image_url && (
-                            <div 
-                              className={`flex-shrink-0 w-16 h-16 sm:w-20 sm:h-20 rounded-xl overflow-hidden ${isDark ? 'card-glow' : ''}`}
-                              style={{ border: `1px solid ${theme.colors.border}` }}
-                            >
-                              <img 
-                                src={item.image_url} 
-                                alt={item.name}
-                                className="item-image w-full h-full object-cover"
-                              />
+                        <div className="flex items-start gap-4" style={{ flexDirection: 'row-reverse' }}>
+                          {/* RIGHT: Price */}
+                          {item.price && (
+                            <div className="flex-shrink-0">
+                              <span
+                                className={`font-semibold text-base sm:text-lg whitespace-nowrap ${isDark ? 'gold-glow' : ''}`}
+                                style={{ color: theme.colors.primary }}
+                                dir="ltr"
+                              >
+                                {Number(item.price).toFixed(2)} TD
+                              </span>
                             </div>
                           )}
                           
-                          <div className="flex-1 min-w-0">
-                            <div className="flex items-baseline">
+                          {/* Spacer line */}
+                          <span 
+                            className={`price-line flex-1 ${isDark ? 'price-line-dark' : 'price-line-light'}`}
+                            style={{ color: theme.colors.muted, alignSelf: 'center' }}
+                          />
+                          
+                          {/* LEFT: Image + Title + Description */}
+                          <div className="flex gap-3 flex-shrink-0 max-w-[70%]">
+                            {item.image_url && (
+                              <div 
+                                className={`flex-shrink-0 w-16 h-16 sm:w-20 sm:h-20 rounded-xl overflow-hidden ${isDark ? 'card-glow' : ''}`}
+                                style={{ border: `1px solid ${theme.colors.border}` }}
+                              >
+                                <img 
+                                  src={item.image_url} 
+                                  alt={item.name}
+                                  className="item-image w-full h-full object-cover"
+                                />
+                              </div>
+                            )}
+                            
+                            <div className="min-w-0">
                               <h3 
                                 className="font-medium text-base sm:text-lg"
                                 style={{ 
@@ -465,31 +472,15 @@ export default function PublicMenu({ business, categories, theme }: PublicMenuPr
                                 {item.name}
                               </h3>
                               
-                              {item.price && (
-                                <>
-                                  <span 
-                                    className={`price-line ${isDark ? 'price-line-dark' : 'price-line-light'}`}
-                                    style={{ color: theme.colors.muted }}
-                                  />
-                                  <span
-                                    className={`font-semibold text-base sm:text-lg whitespace-nowrap ${isDark ? 'gold-glow' : ''}`}
-                                    style={{ color: theme.colors.primary }}
-                                    dir="ltr"
-                                  >
-                                    {Number(item.price).toFixed(2)} TD
-                                  </span>
-                                </>
+                              {item.description && (
+                                <p 
+                                  className="text-sm mt-1.5 leading-relaxed"
+                                  style={{ color: theme.colors.muted }}
+                                >
+                                  {item.description}
+                                </p>
                               )}
                             </div>
-                            
-                            {item.description && (
-                              <p 
-                                className="text-sm mt-1.5 leading-relaxed"
-                                style={{ color: theme.colors.muted }}
-                              >
-                                {item.description}
-                              </p>
-                            )}
                           </div>
                         </div>
                       </article>
@@ -721,8 +712,7 @@ function MinimalLayout({
                     <img 
                       src={business.logo_url} 
                       alt={business.name}
-                      className="h-10 w-10 sm:h-12 sm:w-12 object-contain rounded-lg"
-                      style={{ border: `1px solid ${theme.colors.border}` }}
+                      className="h-10 w-auto sm:h-12 sm:w-auto object-contain"
                     />
                   )}
                   <div>
@@ -873,83 +863,86 @@ function MinimalLayout({
                       animationDelay: `${idx * 0.05}s`,
                     }}
                   >
-                    <div className="flex gap-4">
-                      {/* Image */}
-                      {item.image_url && (
+                    <div className="flex items-start gap-4" style={{ flexDirection: 'row-reverse' }}>
+                      {/* RIGHT: Price + Expand indicator */}
+                      <div className="flex items-center gap-2 flex-shrink-0">
+                        {item.price && (
+                          <span 
+                            className="font-bold text-base whitespace-nowrap"
+                            style={{ color: theme.colors.accent }}
+                            dir="ltr"
+                          >
+                            {Number(item.price).toFixed(2)} TD
+                          </span>
+                        )}
+                        
+                        {/* Expand indicator */}
                         <div 
-                          className="flex-shrink-0 w-16 h-16 sm:w-20 sm:h-20 rounded-lg overflow-hidden"
-                          style={{ border: `1px solid ${theme.colors.border}` }}
+                          className="transition-transform"
+                          style={{ 
+                            transform: expandedItem === item.id ? 'rotate(180deg)' : 'rotate(0)',
+                            color: theme.colors.muted,
+                          }}
                         >
-                          <img 
-                            src={item.image_url} 
-                            alt={item.name}
-                            className="w-full h-full object-cover"
-                          />
+                          <svg width="16" height="16" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
+                          </svg>
                         </div>
-                      )}
+                      </div>
                       
-                      {/* Content */}
-                      <div className="flex-1 min-w-0">
-                        <div className="flex justify-between items-start gap-3">
-                          <div className="flex-1 min-w-0">
-                            <h3 
-                              className="font-semibold text-base truncate"
-                              style={{ fontFamily: "'Cairo', " + theme.font.heading }}
+                      {/* Spacer */}
+                      <div className="flex-1" />
+                      
+                      {/* LEFT: Image + Name + Description */}
+                      <div className="flex gap-3 flex-shrink-0 max-w-[70%]">
+                        {item.image_url && (
+                          <div 
+                            className="flex-shrink-0 w-16 h-16 sm:w-20 sm:h-20 rounded-lg overflow-hidden"
+                            style={{ border: `1px solid ${theme.colors.border}` }}
+                          >
+                            <img 
+                              src={item.image_url} 
+                              alt={item.name}
+                              className="w-full h-full object-cover"
+                            />
+                          </div>
+                        )}
+                        
+                        <div className="min-w-0">
+                          <h3 
+                            className="font-semibold text-base"
+                            style={{ fontFamily: "'Cairo', " + theme.font.heading }}
+                          >
+                            {item.name}
+                          </h3>
+                          {item.description && !expandedItem && (
+                            <p 
+                              className="text-sm mt-0.5 line-clamp-1"
+                              style={{ color: theme.colors.muted }}
                             >
-                              {item.name}
-                            </h3>
-                            {item.description && !expandedItem && (
+                              {item.description}
+                            </p>
+                          )}
+                          
+                          {/* Expanded Content */}
+                          <div 
+                            className="item-expand"
+                            style={{ 
+                              maxHeight: expandedItem === item.id ? '200px' : '0',
+                              marginTop: expandedItem === item.id ? '12px' : '0',
+                              opacity: expandedItem === item.id ? 1 : 0,
+                            }}
+                          >
+                            {item.description && (
                               <p 
-                                className="text-sm mt-0.5 line-clamp-1"
+                                className="text-sm leading-relaxed"
                                 style={{ color: theme.colors.muted }}
                               >
                                 {item.description}
                               </p>
                             )}
                           </div>
-                          
-                          {item.price && (
-                            <span 
-                              className="font-bold text-base whitespace-nowrap"
-                              style={{ color: theme.colors.accent }}
-                              dir="ltr"
-                            >
-                              {Number(item.price).toFixed(2)} TD
-                            </span>
-                          )}
                         </div>
-                        
-                        {/* Expanded Content */}
-                        <div 
-                          className="item-expand"
-                          style={{ 
-                            maxHeight: expandedItem === item.id ? '200px' : '0',
-                            marginTop: expandedItem === item.id ? '12px' : '0',
-                            opacity: expandedItem === item.id ? 1 : 0,
-                          }}
-                        >
-                          {item.description && (
-                            <p 
-                              className="text-sm leading-relaxed"
-                              style={{ color: theme.colors.muted }}
-                            >
-                              {item.description}
-                            </p>
-                          )}
-                        </div>
-                      </div>
-                      
-                      {/* Expand indicator */}
-                      <div 
-                        className="flex-shrink-0 self-center transition-transform"
-                        style={{ 
-                          transform: expandedItem === item.id ? 'rotate(180deg)' : 'rotate(0)',
-                          color: theme.colors.muted,
-                        }}
-                      >
-                        <svg width="16" height="16" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
-                        </svg>
                       </div>
                     </div>
                   </article>

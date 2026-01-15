@@ -89,7 +89,11 @@ export default function DynamicFavicon({ logoUrl, businessName }: DynamicFavicon
       try {
         const link = linkRef.current
         if (link && link.isConnected && link.parentNode) {
-          link.remove()
+          // Check if parentNode still exists before removing
+          const parent = link.parentNode
+          if (parent && parent.contains(link)) {
+            link.remove()
+          }
         }
       } catch (e) {
         // Element may have already been removed - safe to ignore
@@ -100,7 +104,11 @@ export default function DynamicFavicon({ logoUrl, businessName }: DynamicFavicon
       try {
         const apple = appleRef.current
         if (apple && apple.isConnected && apple.parentNode) {
-          apple.remove()
+          // Check if parentNode still exists before removing
+          const parent = apple.parentNode
+          if (parent && parent.contains(apple)) {
+            apple.remove()
+          }
         }
       } catch (e) {
         // Element may have already been removed - safe to ignore

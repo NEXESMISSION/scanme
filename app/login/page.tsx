@@ -29,6 +29,8 @@ export default function LoginPage() {
                 width={180}
                 height={60}
                 className="object-contain"
+                priority
+                style={{ width: 'auto', height: 'auto' }}
               />
             </div>
             <h1 className="text-2xl lg:text-3xl font-bold text-zinc-900 mb-2">

@@ -20,6 +20,7 @@ export default function LandingPage() {
               width={160}
               height={56}
               className="object-contain"
+              style={{ width: 'auto', height: 'auto' }}
             />
           </Link>
 
@@ -115,6 +116,7 @@ export default function LandingPage() {
                   src="/hero img.jpeg"
                   alt="Scaniha"
                   fill
+                  sizes="100vw"
                   className="object-cover rounded-3xl"
                   priority
                   quality={90}
@@ -243,6 +245,7 @@ export default function LandingPage() {
                   src="/hero img.jpeg"
                   alt="Scaniha"
                   fill
+                  sizes="(max-width: 1024px) 100vw, 50vw"
                   className="object-cover rounded-3xl"
                   priority
                   quality={90}
@@ -366,10 +369,10 @@ export default function LandingPage() {
               <div className="text-center mb-6">
                 <h3 className="text-2xl font-bold text-zinc-900 mb-2">6 أشهر</h3>
                 <div className="flex items-baseline justify-center gap-2 mb-2">
-                  <span className="text-5xl font-bold text-zinc-900">50</span>
+                  <span className="text-5xl font-bold text-zinc-900">70</span>
                   <span className="text-xl text-zinc-600">د.ت</span>
                 </div>
-                <p className="text-sm text-zinc-500">≈ 8.33 د.ت / شهر</p>
+                <p className="text-sm text-zinc-500">≈ 11.67 د.ت / شهر</p>
               </div>
               <ul className="space-y-3 mb-8">
                 <li className="flex items-center gap-2">
@@ -407,11 +410,11 @@ export default function LandingPage() {
               <div className="text-center mb-6">
                 <h3 className="text-2xl font-bold mb-2">سنة كاملة</h3>
                 <div className="flex items-baseline justify-center gap-2 mb-2">
-                  <span className="text-5xl font-bold">90</span>
+                  <span className="text-5xl font-bold">100</span>
                   <span className="text-xl text-white/90">د.ت</span>
                 </div>
-                <p className="text-sm text-white/90">≈ 7.50 د.ت / شهر</p>
-                <p className="text-sm mt-2 text-yellow-200 font-semibold">توفر 10 د.ت!</p>
+                <p className="text-sm text-white/90">≈ 8.33 د.ت / شهر</p>
+                <p className="text-sm mt-2 text-yellow-200 font-semibold">توفر 0 د.ت!</p>
               </div>
               <ul className="space-y-3 mb-8">
                 <li className="flex items-center gap-2">
