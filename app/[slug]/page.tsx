@@ -118,11 +118,20 @@ export async function generateMetadata({ params }: { params: { slug: string } })
 
     const baseUrl = process.env.NEXT_PUBLIC_SITE_URL || 'https://scaniha.com'
     const menuUrl = `${baseUrl}/${business.slug}`
-    const description = `View the menu for ${business.name}. Browse our delicious selection of food and beverages.`
+    const description = `View the digital menu for ${business.name}. Browse our delicious selection of food and beverages. Order online or scan our QR code menu.`
+    
+    // Generate relevant keywords based on business name
+    const businessKeywords = [
+      `${business.name} menu`, `${business.name} قائمة`, `menu ${business.name}`,
+      'QR menu', 'digital menu', 'online menu', 'restaurant menu', 'cafe menu',
+      'contactless menu', 'touchless menu', 'menu QR code', 'scaniha menu',
+      'قائمة رقمية', 'QR قائمة', 'منيو QR', 'قائمة المطعم'
+    ]
     
     return {
-      title: `${business.name} - Menu`,
+      title: `${business.name} - Digital Menu | Scaniha`,
       description,
+      keywords: businessKeywords,
       alternates: {
         canonical: menuUrl,
       },

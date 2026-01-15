@@ -4,13 +4,13 @@ import { getActiveBusinesses } from '@/lib/db/business'
 export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
   const baseUrl = process.env.NEXT_PUBLIC_SITE_URL || 'https://scaniha.com'
   
-  // Get all active businesses
+  // Get all active businesses (only includes active, non-expired businesses)
   const businesses = await getActiveBusinesses()
   
-  // Static pages
+  // Static pages - includes the main website pages
   const staticPages: MetadataRoute.Sitemap = [
     {
-      url: baseUrl,
+      url: baseUrl, // Homepage - highest priority
       lastModified: new Date(),
       changeFrequency: 'daily',
       priority: 1,
