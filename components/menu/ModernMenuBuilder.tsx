@@ -313,7 +313,7 @@ export default function ModernMenuBuilder({ businessId, initialCategories }: Mod
 
       // Create categories and items
       let position = categories.length
-      for (const [categoryName, items] of categoryMap.entries()) {
+      for (const [categoryName, items] of Array.from(categoryMap.entries())) {
         // Check if category exists
         let categoryId = categories.find(c => c.name === categoryName)?.id
 
