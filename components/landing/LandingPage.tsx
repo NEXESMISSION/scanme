@@ -319,7 +319,7 @@ export default function LandingPage() {
               <div className="p-8 text-right">
                 <h3 className="text-2xl font-bold text-zinc-900 mb-3">أسعار منخفضة</h3>
                 <p className="text-zinc-600 leading-relaxed text-base">
-                  50 د.ت لـ 6 أشهر أو 90 د.ت للسنة الكاملة. بدون رسوم خفية.
+                  70 د.ت لـ 6 أشهر أو 100 د.ت للسنة الكاملة. بدون رسوم خفية.
                 </p>
               </div>
             </div>
@@ -414,7 +414,7 @@ export default function LandingPage() {
                   <span className="text-xl text-white/90">د.ت</span>
                 </div>
                 <p className="text-sm text-white/90">≈ 8.33 د.ت / شهر</p>
-                <p className="text-sm mt-2 text-yellow-200 font-semibold">توفر 0 د.ت!</p>
+                <p className="text-sm mt-2 text-yellow-200 font-semibold">توفر 40 د.ت!</p>
               </div>
               <ul className="space-y-3 mb-8">
                 <li className="flex items-center gap-2">
