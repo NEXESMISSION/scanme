@@ -426,8 +426,8 @@ export default function PublicMenu({ business, categories, theme }: PublicMenuPr
                         className={`menu-item rounded-xl p-4 ${isDark ? 'menu-item-dark' : 'menu-item-light'}`}
                         style={{ animationDelay: `${0.2 + itemIndex * 0.05}s` }}
                       >
-                        <div className="flex items-start gap-4" style={{ flexDirection: 'row-reverse' }}>
-                          {/* RIGHT: Price */}
+                        <div className="flex items-start gap-4">
+                          {/* LEFT: Price */}
                           {item.price && (
                             <div className="flex-shrink-0">
                               <span
@@ -446,7 +446,7 @@ export default function PublicMenu({ business, categories, theme }: PublicMenuPr
                             style={{ color: theme.colors.muted, alignSelf: 'center' }}
                           />
                           
-                          {/* LEFT: Image + Title + Description */}
+                          {/* RIGHT: Image + Title + Description */}
                           <div className="flex gap-3 flex-shrink-0 max-w-[70%]">
                             {item.image_url && (
                               <div 
@@ -863,19 +863,9 @@ function MinimalLayout({
                       animationDelay: `${idx * 0.05}s`,
                     }}
                   >
-                    <div className="flex items-start gap-4" style={{ flexDirection: 'row-reverse' }}>
-                      {/* RIGHT: Price + Expand indicator */}
+                    <div className="flex items-start gap-4">
+                      {/* LEFT: Price + Expand indicator */}
                       <div className="flex items-center gap-2 flex-shrink-0">
-                        {item.price && (
-                          <span 
-                            className="font-bold text-base whitespace-nowrap"
-                            style={{ color: theme.colors.accent }}
-                            dir="ltr"
-                          >
-                            {Number(item.price).toFixed(2)} TD
-                          </span>
-                        )}
-                        
                         {/* Expand indicator */}
                         <div 
                           className="transition-transform"
@@ -888,12 +878,22 @@ function MinimalLayout({
                             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
                           </svg>
                         </div>
+                        
+                        {item.price && (
+                          <span 
+                            className="font-bold text-base whitespace-nowrap"
+                            style={{ color: theme.colors.accent }}
+                            dir="ltr"
+                          >
+                            {Number(item.price).toFixed(2)} TD
+                          </span>
+                        )}
                       </div>
                       
                       {/* Spacer */}
                       <div className="flex-1" />
                       
-                      {/* LEFT: Image + Name + Description */}
+                      {/* RIGHT: Image + Name + Description */}
                       <div className="flex gap-3 flex-shrink-0 max-w-[70%]">
                         {item.image_url && (
                           <div 
