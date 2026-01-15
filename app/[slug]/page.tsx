@@ -3,6 +3,7 @@ import { getBusinessBySlug, getBusinessWithCategoriesAndItems } from '@/lib/db/b
 import { getTheme } from '@/lib/themes'
 import PublicMenu from '@/components/menu/PublicMenu'
 import type { Database } from '@/lib/supabase/database.types'
+import type { Metadata } from 'next'
 
 type Category = Database['public']['Tables']['categories']['Row'] & {
   items: Database['public']['Tables']['items']['Row'][]
@@ -60,24 +61,112 @@ export default async function PublicMenuPage({
     status: isPaused ? 'paused' as const : business.status
   }
 
+  // Generate structured data for SEO
+  const baseUrl = process.env.NEXT_PUBLIC_SITE_URL || 'https://yourdomain.com'
+  const menuUrl = `${baseUrl}/${business.slug}`
+
+  const structuredData = {
+    '@context': 'https://schema.org',
+    '@type': 'Restaurant',
+    name: business.name,
+    url: menuUrl,
+    ...(business.logo_url && { image: business.logo_url }),
+    ...(categories.length > 0 && {
+      hasMenu: {
+        '@type': 'Menu',
+        hasMenuSection: categories.map(cat => ({
+          '@type': 'MenuSection',
+          name: cat.name,
+          hasMenuItem: cat.items.map(item => ({
+            '@type': 'MenuItem',
+            name: item.name,
+            description: item.description || undefined,
+            offers: item.price ? {
+              '@type': 'Offer',
+              price: item.price,
+              priceCurrency: 'TND',
+            } : undefined,
+          })),
+        })),
+      },
+    }),
+  }
+
   return (
-    <PublicMenu
-      business={businessForDisplay}
-      categories={categories}
-      theme={theme}
-    />
+    <>
+      <script
+        type="application/ld+json"
+        dangerouslySetInnerHTML={{ __html: JSON.stringify(structuredData) }}
+      />
+      <PublicMenu
+        business={businessForDisplay}
+        categories={categories}
+        theme={theme}
+      />
+    </>
   )
 }
 
-export async function generateMetadata({ params }: { params: { slug: string } }) {
+export async function generateMetadata({ params }: { params: { slug: string } }): Promise<Metadata> {
   try {
     const business = await getBusinessBySlug(params.slug)
+    if (!business) {
+      return {
+        title: 'Menu Not Found',
+      }
+    }
+
+    const baseUrl = process.env.NEXT_PUBLIC_SITE_URL || 'https://yourdomain.com'
+    const menuUrl = `${baseUrl}/${business.slug}`
+    const description = `View the menu for ${business.name}. Browse our delicious selection of food and beverages.`
+    
     return {
-      title: business?.name || 'Menu',
+      title: `${business.name} - Menu`,
+      description,
+      alternates: {
+        canonical: menuUrl,
+      },
+      openGraph: {
+        title: `${business.name} - Menu`,
+        description,
+        url: menuUrl,
+        siteName: business.name,
+        type: 'website',
+        ...(business.logo_url && {
+          images: [
+            {
+              url: business.logo_url,
+              width: 1200,
+              height: 630,
+              alt: `${business.name} Logo`,
+            },
+          ],
+        }),
+      },
+      twitter: {
+        card: 'summary_large_image',
+        title: `${business.name} - Menu`,
+        description,
+        ...(business.logo_url && {
+          images: [business.logo_url],
+        }),
+      },
+      robots: {
+        index: business.status === 'active' && (!business.expires_at || new Date(business.expires_at) > new Date()),
+        follow: true,
+        googleBot: {
+          index: business.status === 'active' && (!business.expires_at || new Date(business.expires_at) > new Date()),
+          follow: true,
+          'max-video-preview': -1,
+          'max-image-preview': 'large',
+          'max-snippet': -1,
+        },
+      },
     }
   } catch {
     return {
       title: 'Menu',
+      description: 'View our menu',
     }
   }
 }

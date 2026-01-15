@@ -58,6 +58,25 @@ export async function getBusinessWithCategoriesAndItems(businessId: string) {
   return categories
 }
 
+export async function getActiveBusinesses(): Promise<Array<{ slug: string; updated_at: string | null }>> {
+  const supabase = await createServerClient()
+  const now = new Date().toISOString()
+  
+  // Get only active businesses that haven't expired
+  const { data, error } = await supabase
+    .from('businesses')
+    .select('slug, updated_at')
+    .eq('status', 'active')
+    .or(`expires_at.is.null,expires_at.gt.${now}`)
+    .order('updated_at', { ascending: false })
+  
+  if (error) {
+    console.error('Error fetching active businesses:', error)
+    return []
+  }
+  return (data || []) as Array<{ slug: string; updated_at: string | null }>
+}
+
 export async function getAllBusinesses() {
   // Try service role first, fallback to regular client if not available
   let supabase
